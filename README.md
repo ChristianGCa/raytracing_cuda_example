@@ -7,10 +7,11 @@ To run:
 ```bash
 cd build
 ```
+Ray Tracing with CUDA:
 ```bash
 ./raytrace_cuda
 ```
-or
+Ray Tracing with CPU:
 ```bash
 ./raytrace_cpu
 ```
