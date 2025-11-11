@@ -265,7 +265,7 @@ int main(){
     Vec3 *h_fb = new Vec3[numPixels];
     cudaMemcpy(h_fb, d_fb, numPixels * sizeof(Vec3), cudaMemcpyDeviceToHost);
 
-    FILE *f = fopen("output/output_cuda.ppm", "w");
+    FILE *f = fopen("../output/output_cuda.ppm", "w");
 if (!f) {
     fprintf(stderr, "Erro ao criar output_cuda.ppm\n");
     return 1;

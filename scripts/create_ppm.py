@@ -13,5 +13,5 @@ def create_random_ppm(width, height, filename):
     print(f"Imagem PPM aleatória salva como {filename}")
 
 if __name__ == "__main__":
-    create_random_ppm(256, 256, "./output/random_image.ppm")
+    create_random_ppm(256, 256, "../frames/random_image.ppm")
 

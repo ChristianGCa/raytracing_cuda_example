@@ -135,8 +135,8 @@ Vec3 trace_ray(Ray ray, const std::vector<Sphere> &spheres,
 }
 
 int main() {
-    const int width = 3840;
-    const int height = 2160;
+    const int width = 1920;
+    const int height = 1080;
     const int numPixels = width * height;
     const int samples = 10;
     const int max_depth = 6;
@@ -147,6 +147,7 @@ int main() {
     spheres.emplace_back(Vec3(1.8f, -0.2f, -7.5f), 1.3f, Material(Vec3(0.9f,0.4f,0.35f), 0.12f, 32.0f, 0.45f));
     spheres.emplace_back(Vec3(0.0f, 1.2f, -6.0f), 1.2f, Material(Vec3(0.2f,0.9f,0.35f), 0.6f, 32.0f, 0.08f));
     spheres.emplace_back(Vec3(3.5f, 0.3f, -13.0f), 1.0f, Material(Vec3(0.6f,0.7f,0.95f), 0.7f, 64.0f, 0.03f));
+    //spheres.emplace_back(Vec3(3.8f, 1.0f, -3.0f), 1.0f, Material(Vec3(0.6f,0.7f,0.95f), 0.7f, 64.0f, 0.03f));
 
     Vec3 camPos(0.0f, 1.0f, 2.5f);
     Vec3 camLookAt(0.0f, 0.3f, -6.0f);
@@ -198,7 +199,7 @@ int main() {
 
     std::cout << "\nRender finalizado. Salvando imagem..." << std::endl;
 
-    std::ofstream ofs("output/output_cpu.ppm");
+    std::ofstream ofs("../output/output_cpu.ppm");
     ofs << "P3\n" << width << " " << height << "\n255\n";
     for (int j = height - 1; j >= 0; --j) {
         for (int i = 0; i < width; ++i) {
