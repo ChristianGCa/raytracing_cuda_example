@@ -8,6 +8,7 @@
 #include <vector>
 #include <random>
 #include <algorithm>
+#include <chrono>
 
 struct Vec3 {
     float x,y,z;
@@ -167,7 +168,10 @@ int main() {
     Vec3 v = cross(w, u);
 
     unsigned long long seed = 123456789ULL;
+    auto prog_start = std::chrono::high_resolution_clock::now();
     std::cout << "Iniciando renderização de " << width << "x" << height << "..." << std::endl;
+
+    auto render_start = std::chrono::high_resolution_clock::now();
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
@@ -212,6 +216,14 @@ int main() {
     }
     ofs.close();
 
+    auto render_end = std::chrono::high_resolution_clock::now();
     std::cout << "Imagem salva como output_cpu.ppm" << std::endl;
+
+    auto prog_end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> render_seconds = render_end - render_start;
+    std::chrono::duration<double> total_seconds = prog_end - prog_start;
+    std::cout << std::fixed << std::setprecision(3);
+    std::cout << "Tempo de render (loop de pixels): " << render_seconds.count() << " s\n";
+    std::cout << "Tempo total do programa: " << total_seconds.count() << " s" << std::endl;
     return 0;
 }

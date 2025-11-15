@@ -9,6 +9,7 @@
 #include <cmath>
 #include <curand_kernel.h>
 #include <cuda_runtime.h>
+#include <chrono>
 
 struct Vec3 {
     float x,y,z;
@@ -256,14 +257,34 @@ int main(){
     init_rand_kernel<<<grid, block>>>(d_randStates, width, height, seed);
     cudaDeviceSynchronize();
 
+    auto prog_start = std::chrono::high_resolution_clock::now();
+
+    // measure GPU kernel execution time with CUDA events
+    cudaEvent_t kstart, kstop;
+    cudaEventCreate(&kstart);
+    cudaEventCreate(&kstop);
+
+    cudaEventRecord(kstart);
     render_kernel<<<grid, block>>>(d_fb, width, height, d_spheres, nspheres,
                                    camPos, camLookAt, camUp, fov, max_depth, samples,
                                    lightPos, lightColor, d_randStates);
     cudaDeviceSynchronize();
+    cudaEventRecord(kstop);
+    cudaEventSynchronize(kstop);
+    float kernel_ms = 0.0f;
+    cudaEventElapsedTime(&kernel_ms, kstart, kstop);
+    cudaEventDestroy(kstart);
+    cudaEventDestroy(kstop);
+
+    auto gpu_kernel_seconds = kernel_ms / 1000.0f;
+
 
     // copy back
     Vec3 *h_fb = new Vec3[numPixels];
+    auto copy_start = std::chrono::high_resolution_clock::now();
     cudaMemcpy(h_fb, d_fb, numPixels * sizeof(Vec3), cudaMemcpyDeviceToHost);
+    auto copy_end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> copy_seconds = copy_end - copy_start;
 
     FILE *f = fopen("../output/output_cuda.ppm", "w");
 if (!f) {
@@ -302,6 +323,14 @@ fclose(f);
     cudaFree(d_fb);
     cudaFree(d_spheres);
     cudaFree(d_randStates);
+
+    auto prog_end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> total_seconds = prog_end - prog_start;
+
+    std::cout << std::fixed << std::setprecision(3);
+    std::cout << "\nTempo do kernel GPU: " << gpu_kernel_seconds << " s (" << kernel_ms << " ms)\n";
+    std::cout << "Tempo de cópia D2H: " << copy_seconds.count() << " s\n";
+    std::cout << "Tempo total do programa: " << total_seconds.count() << " s\n";
 
     printf("Render completo -> output_cuda.ppm\n");
     return 0;

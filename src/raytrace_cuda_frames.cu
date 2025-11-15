@@ -9,6 +9,8 @@
 #include <cmath>
 #include <curand_kernel.h>
 #include <cuda_runtime.h>
+#include <chrono>
+#include <vector>
 
 struct Vec3 {
     float x,y,z;
@@ -247,6 +249,16 @@ int main(){
     init_rand_kernel<<<grid, block>>>(d_randStates, width, height, seed);
     cudaDeviceSynchronize();
 
+    auto prog_start = std::chrono::high_resolution_clock::now();
+
+    // prepare CUDA events for per-frame GPU timing
+    cudaEvent_t fstart, fstop;
+    cudaEventCreate(&fstart);
+    cudaEventCreate(&fstop);
+
+    std::vector<float> frame_kernel_ms;
+    frame_kernel_ms.reserve(numFrames);
+
     Vec3 initialCenter1 = h_spheres[1].center;
     Vec3 initialCenter2 = h_spheres[2].center;
     Vec3 initialCenter3 = h_spheres[3].center;
@@ -271,21 +283,28 @@ int main(){
         float currentX3 = initialCenter3.x + f * moveXPerFrame;
         h_spheres[3].center = Vec3(currentX3, initialCenter3.y, initialCenter3.z);
         
-        cudaMemcpy(d_spheres, h_spheres, nspheres * sizeof(Sphere), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_spheres, h_spheres, nspheres * sizeof(Sphere), cudaMemcpyHostToDevice);
 
-        render_kernel<<<grid, block>>>(d_fb, width, height, d_spheres, nspheres,
-                                       camPos, camLookAt, camUp, fov, max_depth, samples,
-                                       lightPos, lightColor, d_randStates);
-        cudaDeviceSynchronize();
+    // measure GPU kernel time per frame
+    cudaEventRecord(fstart);
+    render_kernel<<<grid, block>>>(d_fb, width, height, d_spheres, nspheres,
+                       camPos, camLookAt, camUp, fov, max_depth, samples,
+                       lightPos, lightColor, d_randStates);
+    cudaDeviceSynchronize();
+    cudaEventRecord(fstop);
+    cudaEventSynchronize(fstop);
+    float frame_ms = 0.0f;
+    cudaEventElapsedTime(&frame_ms, fstart, fstop);
+    frame_kernel_ms.push_back(frame_ms);
 
-        cudaMemcpy(h_fb, d_fb, numPixels * sizeof(Vec3), cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_fb, d_fb, numPixels * sizeof(Vec3), cudaMemcpyDeviceToHost);
 
-        char filename[100];
-        snprintf(filename, sizeof(filename), "../frames/frame_cuda_%02d.ppm", frame);
-        save_ppm(filename, h_fb, width, height);
+    char filename[100];
+    snprintf(filename, sizeof(filename), "../frames/frame_cuda_%02d.ppm", frame);
+    save_ppm(filename, h_fb, width, height);
 
-        std::cout << "\rRenderizando Frame: " << std::fixed << std::setprecision(0) 
-                  << frame + 1 << "/" << numFrames << " -> " << filename << std::flush;
+    std::cout << "\rRenderizando Frame: " << std::fixed << std::setprecision(0)
+          << frame + 1 << "/" << numFrames << " -> " << filename << std::flush;
     }
 
     std::cout << "\rRenderizando Frame: " << numFrames << "/" << numFrames << ". Concluído!\n";
@@ -294,6 +313,30 @@ int main(){
     cudaFree(d_fb);
     cudaFree(d_spheres);
     cudaFree(d_randStates);
+
+    // compute timing summary
+    auto prog_end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> total_seconds = prog_end - prog_start;
+
+    // compute stats for GPU kernel ms per frame
+    double sum_ms = 0.0;
+    double min_ms = 1e300, max_ms = 0.0;
+    for (float v : frame_kernel_ms) {
+        sum_ms += v;
+        if (v < min_ms) min_ms = v;
+        if (v > max_ms) max_ms = v;
+    }
+    double avg_ms = (frame_kernel_ms.empty() ? 0.0 : sum_ms / frame_kernel_ms.size());
+
+    std::cout << std::fixed << std::setprecision(3);
+    std::cout << "\nFrames renderizados: " << numFrames << "\n";
+    std::cout << "Tempo total (programa): " << total_seconds.count() << " s\n";
+    std::cout << "Tempo médio por kernel GPU: " << (avg_ms/1000.0) << " s (" << avg_ms << " ms)\n";
+    std::cout << "Min/Max kernel time: " << (min_ms/1000.0) << " s / " << (max_ms/1000.0) << " s\n";
+
+    // destroy events
+    cudaEventDestroy(fstart);
+    cudaEventDestroy(fstop);
 
     printf("Todos os frames renderizados.\n");
 
