@@ -3,35 +3,33 @@ from PIL import Image
 import os
 
 def create_gif(images_path, output_gif_path, frame_duration=100):
-    caminhos_arquivos = sorted(glob.glob(os.path.join(images_path, '*.ppm')))
-    
-    if not caminhos_arquivos:
-        print(f"Nenhuma imagem .ppm encontrada na pasta: {images_path}")
+    caminhos = sorted(glob.glob(os.path.join(images_path, "*.ppm")))
+
+    if not caminhos:
+        print("Nenhuma imagem .ppm encontrada.")
         return
 
-    imagens = []
-    for caminho in caminhos_arquivos:
+    first = Image.open(caminhos[0]).convert("P", palette=Image.ADAPTIVE)
+
+    frames = []
+    for caminho in caminhos[1:]:
         try:
-            img = Image.open(caminho)
-            if img.mode != 'RGB':
-                img = img.convert('RGB')
-            imagens.append(img)
-        except IOError:
-            print(f"Erro ao abrir a imagem {caminho}")
+            frame = Image.open(caminho).convert("P", palette=Image.ADAPTIVE)
+            frames.append(frame)
+        except Exception as e:
+            print("Erro:", caminho, e)
 
-    if not imagens:
-        print("Nenhuma imagem válida foi carregada. Não foi possível criar o GIF.")
-        return
-
-    imagens[0].save(
+    first.save(
         output_gif_path,
         save_all=True,
-        append_images=imagens[1:],
+        append_images=frames,
         duration=frame_duration,
-        loop=0
+        loop=0,
+        optimize=True,
+        disposal=2
     )
-    
-    print(f"GIF processed: {output_gif_path} with {len(imagens)} frames.")
+
+    print(f"GIF criado com {len(caminhos)} frames → {output_gif_path}")
 
 create_gif(
     images_path="./frames", 

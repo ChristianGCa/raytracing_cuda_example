@@ -15,3 +15,9 @@ Ray Tracing with CPU:
 ```bash
 ./raytrace_cpu
 ```
+Frames Ray Tracing with CPU:
+```bash
+./raytrace_cpu_frames
+```
+
+![Output frames](./animation.gif)
