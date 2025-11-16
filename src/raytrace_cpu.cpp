@@ -143,11 +143,12 @@ int main() {
     const int max_depth = 6;
 
     std::vector<Sphere> spheres;
-    spheres.emplace_back(Vec3(0.0f, -10005.0f, -20.0f), 10000.0f, Material(Vec3(0.8f,0.8f,0.8f), 0.0f, 16.0f, 0.01f));
-    spheres.emplace_back(Vec3(-2.5f, 0.5f, -10.0f), 1.5f, Material(Vec3(0.95f,0.95f,0.98f), 0.95f, 64.0f, 0.02f));
-    spheres.emplace_back(Vec3(1.8f, -0.2f, -7.5f), 1.3f, Material(Vec3(0.9f,0.4f,0.35f), 0.12f, 32.0f, 0.45f));
+
+    spheres.emplace_back(Vec3(0.0f, -1005.0f, -20.0f), 1000.0f, Material(Vec3(0.8f,0.8f,0.8f), 0.0f, 16.0f, 0.01f));
+    spheres.emplace_back(Vec3(-2.5f, 0.5f, -10.0f), 2.0f, Material(Vec3(0.95f,0.95f,0.98f), 0.95f, 64.0f, 0.02f));
     spheres.emplace_back(Vec3(0.0f, 1.2f, -6.0f), 1.2f, Material(Vec3(0.2f,0.9f,0.35f), 0.6f, 32.0f, 0.08f));
-    spheres.emplace_back(Vec3(3.5f, 0.3f, -13.0f), 1.0f, Material(Vec3(0.6f,0.7f,0.95f), 0.7f, 64.0f, 0.03f));
+    spheres.emplace_back(Vec3(3.5f, 0.3f, -6.0f), 1.0f, Material(Vec3(0.6f,0.7f,0.95f), 0.7f, 100.0f, 0.03f));
+    spheres.emplace_back(Vec3(1.0f, 0.0f, -4.0f), 0.8f, Material(Vec3(0.9f, 0.1f, 0.1f), 0.0f, 16.0f, 0.0f));
     //spheres.emplace_back(Vec3(3.8f, 1.0f, -3.0f), 1.0f, Material(Vec3(0.6f,0.7f,0.95f), 0.7f, 64.0f, 0.03f));
 
     Vec3 camPos(0.0f, 1.0f, 2.5f);
@@ -169,7 +170,7 @@ int main() {
 
     unsigned long long seed = 123456789ULL;
     auto prog_start = std::chrono::high_resolution_clock::now();
-    std::cout << "Iniciando renderização de " << width << "x" << height << "..." << std::endl;
+    std::cout << "Iniciando renderização de " << width << "x" << height << "...\n" << std::endl;
 
     auto render_start = std::chrono::high_resolution_clock::now();
 

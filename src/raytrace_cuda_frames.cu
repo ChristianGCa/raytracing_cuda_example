@@ -221,11 +221,11 @@ int main(){
 
     const int nspheres = 6;
     Sphere h_spheres[nspheres];
-    h_spheres[0] = Sphere(Vec3(0.0f, -10005.0f, -20.0f), 10000.0f, Material(Vec3(0.8f,0.8f,0.8f), 0.0f, 16.0f, 0.01f));
-    h_spheres[1] = Sphere(Vec3(-2.5f, 0.5f, -10.0f), 1.5f, Material(Vec3(0.95f,0.95f,0.98f), 0.95f, 64.0f, 0.02f));
-    h_spheres[2] = Sphere(Vec3(1.8f, -0.2f, -7.5f), 1.3f, Material(Vec3(0.9f,0.4f,0.35f), 0.12f, 32.0f, 0.45f));
-    h_spheres[3] = Sphere(Vec3(0.0f, 1.2f, -6.0f), 1.2f, Material(Vec3(0.2f,0.9f,0.35f), 0.6f, 32.0f, 0.08f));
-    h_spheres[4] = Sphere(Vec3(3.5f, 0.3f, -13.0f), 1.0f, Material(Vec3(0.6f,0.7f,0.95f), 0.7f, 64.0f, 0.03f));
+    h_spheres[0] = Sphere(Vec3(0.0f, -1005.0f, -20.0f), 1000.0f, Material(Vec3(0.8f,0.8f,0.8f), 0.0f, 16.0f, 0.01f));
+    h_spheres[1] = Sphere(Vec3(-2.5f, 0.5f, -10.0f), 2.0f, Material(Vec3(0.95f,0.95f,0.98f), 0.95f, 64.0f, 0.02f));
+    h_spheres[2] = Sphere(Vec3(0.0f, 1.2f, -6.0f), 1.2f, Material(Vec3(0.2f,0.9f,0.35f), 0.6f, 32.0f, 0.08f));
+    h_spheres[3] = Sphere(Vec3(3.5f, 0.3f, -6.0f), 1.0f, Material(Vec3(0.6f,0.7f,0.95f), 0.7f, 100.0f, 0.03f));
+    h_spheres[4] = Sphere(Vec3(1.0f, 0.0f, -4.0f), 0.8f, Material(Vec3(0.9f, 0.1f, 0.1f), 0.0f, 16.0f, 0.0f));
 
     Sphere *d_spheres;
     cudaMalloc((void**)&d_spheres, nspheres * sizeof(Sphere));
@@ -262,6 +262,7 @@ int main(){
     Vec3 initialCenter1 = h_spheres[1].center;
     Vec3 initialCenter2 = h_spheres[2].center;
     Vec3 initialCenter3 = h_spheres[3].center;
+    Vec3 initialCenter4 = h_spheres[4].center;
 
     const float moveXPerFrame = 0.05f; 
     const float moveYPerFrame = 0.03f; 
@@ -270,18 +271,19 @@ int main(){
     for (int frame = 0; frame < numFrames; ++frame) {
         float f = float(frame);
 
-        // 🔹 Movimento da esfera reflexiva (em Y e Z)
         float currentY1 = initialCenter1.y + f * moveYPerFrame;
         float currentZ1 = initialCenter1.z + f * moveZPerFrame;
         h_spheres[1].center = Vec3(initialCenter1.x, currentY1, currentZ1);
 
-        // 🔹 Movimento vertical senoidal da vermelha
+        // sin
         float currentY2 = initialCenter2.y + sinf(f * 0.1f) * 0.8f;
         h_spheres[2].center = Vec3(initialCenter2.x, currentY2, initialCenter2.z);
 
-        // 🔹 Movimento lateral da verde
         float currentX3 = initialCenter3.x + f * moveXPerFrame;
         h_spheres[3].center = Vec3(currentX3, initialCenter3.y, initialCenter3.z);
+
+        float currentX4 = initialCenter2.x + sinf(f * 0.1f) * 0.8f;
+        h_spheres[4].center = Vec3(currentX4, initialCenter4.y, initialCenter4.z);
         
     cudaMemcpy(d_spheres, h_spheres, nspheres * sizeof(Sphere), cudaMemcpyHostToDevice);
 

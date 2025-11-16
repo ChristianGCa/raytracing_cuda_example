@@ -210,8 +210,8 @@ __global__ void render_kernel(Vec3 *fb, int width, int height,
 }
 
 int main(){
-    const int width = 3840;
-    const int height = 2160;
+    const int width = 1920;
+    const int height = 1080;
     const int numPixels = width * height;
 
     // framebuffer
@@ -222,15 +222,11 @@ int main(){
     const int nspheres = 6;
     Sphere h_spheres[nspheres];
     // ground (big)
-    h_spheres[0] = Sphere(Vec3(0.0f, -10005.0f, -20.0f), 10000.0f, Material(Vec3(0.8f,0.8f,0.8f), 0.0f, 16.0f, 0.01f));
-    // shiny mirror
-    h_spheres[1] = Sphere(Vec3(-2.5f, 0.5f, -10.0f), 1.5f, Material(Vec3(0.95f,0.95f,0.98f), 0.95f, 64.0f, 0.02f));
-    // absorbed reddish
-    h_spheres[2] = Sphere(Vec3(1.8f, -0.2f, -7.5f), 1.3f, Material(Vec3(0.9f,0.4f,0.35f), 0.12f, 32.0f, 0.45f));
-    // green-ish semi reflective
-    h_spheres[3] = Sphere(Vec3(0.0f, 1.2f, -6.0f), 1.2f, Material(Vec3(0.2f,0.9f,0.35f), 0.6f, 32.0f, 0.08f));
-    // small blue distant
-    h_spheres[4] = Sphere(Vec3(3.5f, 0.3f, -13.0f), 1.0f, Material(Vec3(0.6f,0.7f,0.95f), 0.7f, 64.0f, 0.03f));
+    h_spheres[0] = Sphere(Vec3(0.0f, -1005.0f, -20.0f), 1000.0f, Material(Vec3(0.8f,0.8f,0.8f), 0.0f, 16.0f, 0.01f));
+    h_spheres[1] = Sphere(Vec3(-2.5f, 0.5f, -10.0f), 2.0f, Material(Vec3(0.95f,0.95f,0.98f), 0.95f, 64.0f, 0.02f));
+    h_spheres[2] = Sphere(Vec3(0.0f, 1.2f, -6.0f), 1.2f, Material(Vec3(0.2f,0.9f,0.35f), 0.6f, 32.0f, 0.08f));
+    h_spheres[3] = Sphere(Vec3(3.5f, 0.3f, -6.0f), 1.0f, Material(Vec3(0.6f,0.7f,0.95f), 0.7f, 100.0f, 0.03f));
+    h_spheres[4] = Sphere(Vec3(1.0f, 0.0f, -4.0f), 0.8f, Material(Vec3(0.9f, 0.1f, 0.1f), 0.0f, 16.0f, 0.0f));
 
     Sphere *d_spheres;
     cudaMalloc((void**)&d_spheres, nspheres * sizeof(Sphere));
