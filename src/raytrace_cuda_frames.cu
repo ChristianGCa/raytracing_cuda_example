@@ -213,7 +213,7 @@ int main(){
     const int width = 1920;
     const int height = 1080;
     const int numPixels = width * height;
-    const int numFrames = 120;
+    const int numFrames = 80;
 
     Vec3 *d_fb;
     cudaMalloc((void**)&d_fb, numPixels * sizeof(Vec3));
