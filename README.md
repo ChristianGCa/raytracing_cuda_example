@@ -3,7 +3,7 @@ To execute:
 ```bash
 make
 ```
-To run:
+To run, go to the build folder:
 ```bash
 cd build
 ```
