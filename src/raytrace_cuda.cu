@@ -157,50 +157,39 @@ __global__ void render_kernel(Vec3 *fb, int width, int height,
                 }
             }
 
-            // diffuse
             float NdotL = fmaxf(dot(N, L), 0.0f);
             Vec3 diffuse = mat.albedo * NdotL;
 
-            // specular (Blinn-Phong)
             Vec3 V = (camPos - hitP).normalized();
             Vec3 H = (V + L).normalized();
             float NdotH = fmaxf(dot(N, H), 0.0f);
             float spec = powf(NdotH, mat.specular_exponent);
-            // specular color scaled by reflectivity to keep energy sensible
+
             Vec3 specular = lightColor * spec * mat.reflectivity;
 
             Vec3 direct(0,0,0);
             if (!inShadow) direct = (diffuse * lightColor) + specular;
 
-            // add small ambient term (scaled by albedo)
             Vec3 ambient = mat.albedo * 0.05f;
 
-            // accumulate immediate contribution (non-reflected part)
             float nonRef = 1.0f - mat.reflectivity;
             radiance = radiance + throughput * ( (direct + ambient) * nonRef );
 
-            // if reflectivity > 0, spawn reflected ray
             if (mat.reflectivity > 0.0f) {
                 Vec3 R = reflect(ray.d, N).normalized();
                 ray.o = hitP + R * 1e-4f;
                 ray.d = R;
-                // throughput multiplies by albedo and reflectivity
                 throughput = throughput * mat.albedo * mat.reflectivity;
-                // if throughput near zero stop
                 if (throughput.x < 1e-4f && throughput.y < 1e-4f && throughput.z < 1e-4f) break;
-                // continue to trace reflection
             } else {
-                // no reflection -> finish
                 break;
             }
         } // depth
         pixelColor = pixelColor + radiance;
     } // samples
 
-    // store average
     pixelColor = pixelColor / float(samples);
 
-    // gamma correction
     pixelColor.x = powf(clampf(pixelColor.x, 0.0f, 1.0f), 1.0f/2.2f);
     pixelColor.y = powf(clampf(pixelColor.y, 0.0f, 1.0f), 1.0f/2.2f);
     pixelColor.z = powf(clampf(pixelColor.z, 0.0f, 1.0f), 1.0f/2.2f);
@@ -214,14 +203,12 @@ int main(){
     const int height = 1080;
     const int numPixels = width * height;
 
-    // framebuffer
     Vec3 *d_fb;
     cudaMalloc((void**)&d_fb, numPixels * sizeof(Vec3));
 
-    // scene
     const int nspheres = 6;
     Sphere h_spheres[nspheres];
-    // ground (big)
+
     h_spheres[0] = Sphere(Vec3(0.0f, -1005.0f, -20.0f), 1000.0f, Material(Vec3(0.8f,0.8f,0.8f), 0.0f, 16.0f, 0.01f));
     h_spheres[1] = Sphere(Vec3(-2.5f, 0.5f, -10.0f), 2.0f, Material(Vec3(0.95f,0.95f,0.98f), 0.95f, 64.0f, 0.02f));
     h_spheres[2] = Sphere(Vec3(0.0f, 1.2f, -6.0f), 1.2f, Material(Vec3(0.2f,0.9f,0.35f), 0.6f, 32.0f, 0.08f));
@@ -232,17 +219,15 @@ int main(){
     cudaMalloc((void**)&d_spheres, nspheres * sizeof(Sphere));
     cudaMemcpy(d_spheres, h_spheres, nspheres * sizeof(Sphere), cudaMemcpyHostToDevice);
 
-    // camera
     Vec3 camPos(0.0f, 1.0f, 2.5f);
     Vec3 camLookAt(0.0f, 0.3f, -6.0f);
     Vec3 camUp(0.0f, 1.0f, 0.0f);
     float fov = 45.0f;
     int max_depth = 6;
-    int samples = 30; // anti-aliasing / quality (increase for smoother)
+    int samples = 30;
     Vec3 lightPos(5.0f, 8.0f, 0.0f);
     Vec3 lightColor(1.0f,1.0f,0.95f);
 
-    // RNG states
     curandState *d_randStates;
     cudaMalloc((void**)&d_randStates, numPixels * sizeof(curandState));
 
@@ -255,7 +240,6 @@ int main(){
 
     auto prog_start = std::chrono::high_resolution_clock::now();
 
-    // measure GPU kernel execution time with CUDA events
     cudaEvent_t kstart, kstop;
     cudaEventCreate(&kstart);
     cudaEventCreate(&kstop);
@@ -291,7 +275,7 @@ if (!f) {
 fprintf(f, "P3\n%d %d\n255\n", width, height);
 
 int total_lines = height;
-int update_step = total_lines / 100; // atualiza a cada ~1%
+int update_step = total_lines / 100;
 if (update_step < 1) update_step = 1;
 
 for (int j = height - 1; j >= 0; --j) {
@@ -303,7 +287,6 @@ for (int j = height - 1; j >= 0; --j) {
         fprintf(f, "%d %d %d\n", ir, ig, ib);
     }
 
-    // imprime progresso (sem pular linhas)
     if ((height - j) % update_step == 0) {
         float progress = 100.0f * (float)(height - j) / float(height);
         std::cout << "\rProgresso: " << std::fixed << std::setprecision(1)
@@ -326,7 +309,7 @@ fclose(f);
     std::cout << std::fixed << std::setprecision(3);
     std::cout << "\nTempo do kernel GPU: " << gpu_kernel_seconds << " s (" << kernel_ms << " ms)\n";
     std::cout << "Tempo de cópia D2H: " << copy_seconds.count() << " s\n";
-    std::cout << "Tempo total do programa: " << total_seconds.count() << " s\n";
+    std::cout << "Tempo total: " << total_seconds.count() << " s\n";
 
     printf("Render completo -> output_cuda.ppm\n");
     return 0;
