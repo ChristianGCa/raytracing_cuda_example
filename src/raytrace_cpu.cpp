@@ -1,4 +1,4 @@
-// Compile: g++ -O3 -std=c++17 raytrace_spheres_improved_sequential.cpp -o raytrace_sequential
+// Compile: g++ -O3 -std=c++17 raytrace_cpu.cpp -o raytrace_sequential
 // Run: ./raytrace_sequential
 
 #include <iomanip>
