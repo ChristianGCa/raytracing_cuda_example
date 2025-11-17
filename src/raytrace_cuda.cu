@@ -1,8 +1,3 @@
-// Compile:
-// nvcc -O2 -arch=sm_75 -lcudart -lcurand -o raytrace_improved raytrace_spheres_improved.cu
-// Run:
-// ./raytrace_improved
-
 #include <iomanip>
 #include <iostream>
 #include <cstdio>
