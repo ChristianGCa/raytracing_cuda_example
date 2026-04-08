@@ -1,4 +1,7 @@
 # Example of Ray Tracing using CUDA
+
+![Output frames](./animation.gif)
+
 To execute:
 ```bash
 make
@@ -19,5 +22,3 @@ Frames Ray Tracing with CPU:
 ```bash
 ./raytrace_cpu_frames
 ```
-
-![Output frames](./animation.gif)
